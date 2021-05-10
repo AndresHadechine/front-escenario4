@@ -4,133 +4,179 @@ import axios from 'axios';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
+import { Modal, ModalBody, ModalFooter, ModalHeader, Table } from 'reactstrap';
 
 const url = "http://localhost:8080/ListAll";
 const urlSave = "http://localhost:8080/save";
+const urlUpdate = "http://localhost:8080/update/";
+const urlDelete = "http://localhost:8080/delete/";
 
 class App extends Component {
 
-state = {
-  data:[],
-  modelInsert: false,
-  form:{
-    plate: '',
-    brand: '',
-    model: '',
-    driver: {
-    id: '',
-    name: '',
+  state = {
+    data: [],
+    modelInsert: false,
+    modelDelete: false,
+    form: {
+      plate: '',
+      brand: '',
+      model: '',
+      driver: {
+        id: '',
+        name: '',
+      },
+      typeModal: '',
     }
   }
-}
-modalInsert=()=>{
-  this.setState({modalInsert: !this.state.modalInsert});
-}
-getPetition=()=>{
-  axios.get(url).then(response=>{
-    this.setState({data: response.data});
-    console.log(response.data);
-  })
-}
-postPetition=async()=>{
-  await axios.post(urlSave,this.state.form).then(response=>{
-    this.modalInsert();
-    this.getPetition();
-  }).catch(error=>{console.log(error.message)})
-}
-handleChange=async e=>{
-  e.persist();
-  await this.setState({
-    form:{
-      ...this.state.form,
-      [e.target.name]: e.target.value
-    }
-  });
-  console.log(this.state.form);
-}
-handleChangeDriver=async e=>{
-  e.persist();
-    this.state.form.driver.name = e.target.value
-  console.log(this.state.form);
-}
-handleChangeDriverId=async e=>{
-  e.persist();
-    this.state.form.driver.id = e.target.value
-  console.log(this.state.form);
-}
+  modalInsert = () => {
+    this.setState({ modalInsert: !this.state.modalInsert });
+  }
+  selectCar = (car) => {
+    this.setState({
+      typeModal: 'update',
+      form: {
+        plate: car.plate,
+        brand: car.brand,
+        model: car.model,
+        driver: {
+          id: car.driver.id,
+          name: car.driver.name,
+        }
+      }
+    })
+  }
 
-componentDidMount(){
-this.getPetition();
-}
-  render(){
-    const {form}=this.state;
-  return (
-    <div className="App">
-      <br />
-        <button className= "btn btn-success" onClick={()=> this.modalInsert()} >Crear información del auto</button>
+  getPetition = () => {
+    axios.get(url).then(response => {
+      this.setState({ data: response.data });
+      console.log(response.data);
+    })
+  }
+  postPetition = async () => {
+    await axios.post(urlSave, this.state.form).then(response => {
+      this.modalInsert();
+      this.getPetition();
+    }).catch(error => { console.log(error.message) })
+  }
+  putPetition = async () =>{
+    axios.put(urlUpdate+this.state.form.plate, this.state.form).then(response=>{
+      this.modalInsert();
+      this.getPetition();
+    })
+  }
+  deletePetition = () =>{
+    axios.delete(urlDelete+this.state.form.plate).then(response=>{
+      this.setState({modelDelete: false});
+      this.getPetition();
+    })
+  }
+  handleChange = async e => {
+    e.persist();
+    await this.setState({
+      form: {
+        ...this.state.form,
+        [e.target.name]: e.target.value
+      }
+    });
+    console.log(this.state.form);
+  }
+  handleChangeDriver = async e => {
+    e.persist();
+    this.state.form.driver.name = e.target.value
+    console.log(this.state.form);
+  }
+  handleChangeDriverId = async e => {
+    e.persist();
+    this.state.form.driver.id = e.target.value
+
+  }
+
+  componentDidMount() {
+    this.getPetition();
+  }
+  render() {
+    const { form } = this.state;
+    return (
+      <div className="App">
+        <br />
+        <button className="btn btn-success" onClick={() => { this.setState({    form: {plate: '',brand: '',model: '',driver: {id: '',name: '',},
+      typeModal: '',
+    }, typeModal: 'insert' }); this.modalInsert() }} >Crear información del Auto</button>
         <br /><br />
-        <table className="table">
+        <Table className="table" striped bordered hover variant="dark" >
           <thead>
             <tr>
               <th>Placa</th>
               <th>Marca</th>
               <th>Modelo</th>
               <th>Conductor</th>
+              <th>Opciones</th>
             </tr>
           </thead>
-          <tbody>
-          {this.state.data.map(car=>{
-            return(
-              <tr>
-                  <td>{car.plate}</td>
+          <tbody >
+            {this.state.data.map(car => {
+              return (
+                <tr>
+                  <td><b>{car.plate}</b></td>
                   <td>{car.brand}</td>
                   <td>{car.model}</td>
                   <td>{car.driver.name}</td>
                   <td>
-                  <button className="btn btn-primary" >Info</button>
+                    <button className="btn btn-success" >Movilizaciones</button>
                     {"    "}
-                    <button className="btn btn-primary" >Editar</button>
+                    <button className="btn btn-primary" onClick={() => {this.selectCar(car); this.modalInsert()}} >Editar</button>
                     {"    "}
-                    <button className="btn btn-danger" ><FontAwesomeIcon icon = {faTrashAlt} /></button>
+                    <button className="btn btn-danger" onClick={()=>{this.selectCar(car); this.setState({modelDelete: true})}}><FontAwesomeIcon icon={faTrashAlt} /></button>
                   </td>
-              </tr>
-            )
-          })
-          }
+                </tr>
+              )
+            })
+            }
           </tbody>
-        </table>
+        </Table>
         <Modal isOpen={this.state.modalInsert}>
-          <ModalHeader style={{display: 'block'}}>
-            <span style = {{float: 'right'}}>x</span>
+          <ModalHeader style={{ display: 'block' }}>
+            <span style={{ float: 'right' }}>x</span>
           </ModalHeader>
           <ModalBody className="form-group">
             <div className="form-group">
               <label htmlFor="plate">Placa</label>
-              <input className = "form-group" type = "text" name = "plate" id = "plate" onChange={this.handleChange} value={form.plate} />
+              <input className="form-group" type="text" name="plate" id="plate" onChange={this.handleChange} value={form ? form.plate : ''} />
               <br />
               <label htmlFor="brand">Marca</label>
-              <input className = "form-group" type = "text" name = "brand" id = "brand" onChange={this.handleChange} value={form.brand} />
+              <input className="form-group" type="text" name="brand" id="brand" onChange={this.handleChange} value={form ? form.brand : ''} />
               <br />
               <label htmlFor="model">Modelo</label>
-              <input className = "form-group" type = "text" name = "model" id = "model" onChange={this.handleChange} value={form.model} />
+              <input className="form-group" type="text" name="model" id="model" onChange={this.handleChange} value={form ? form.model : ''} />
               <br />
               <label htmlFor="id">ID Conductor</label>
-              <input className = "form-group" type = "text" name = "driver.id" id = "driver.id" onChange={this.handleChangeDriverId} />
+              <input className="form-group" type="text" name="driver.id" id="driver.id" onChange={this.handleChangeDriverId} />
               <br />
               <label htmlFor="name">Nombre Conductor</label>
-              <input className = "form-group" type = "text" name = "driver.name" id = "driver.name" onChange={this.handleChangeDriver} />
+              <input className="form-group" type="text" name="driver.name" id="driver.name" onChange={this.handleChangeDriver} />
               <br />
             </div>
           </ModalBody>
           <ModalFooter>
-            <button className="btn btn-success" onClick={()=>this.postPetition()}>Insertar</button>
-            <button className="btn btn-danger" onClick={()=> this.modalInsert()}>Cancelar</button>
+            {this.state.typeModal == 'insert' ?
+              <button className="btn btn-success" onClick={() => this.postPetition()}>Insertar</button> :
+              <button className="btn btn-success" onClick={() => this.putPetition()}>Actualizar</button>
+            }
+            <button className="btn btn-danger" onClick={() => this.modalInsert()}>Cancelar</button>
           </ModalFooter>
         </Modal>
-    </div>
-  );
-}
+        <Modal isOpen={this.state.modelDelete}>
+          <ModalBody>
+            Estás seguro de que deseas eliminar el carro con placas <br /><b>{form && form.plate}</b>
+          </ModalBody>
+          <ModalFooter>
+            <button className="btn btn-danger" onClick={()=>this.deletePetition()} >Si</button>
+            <button className="btn btn-secundary"onClick={()=>this.setState({modelDelete: false})}>No</button>
+          </ModalFooter>
+        </Modal>
+      </div>
+    );
+  }
 }
 
 export default App;
