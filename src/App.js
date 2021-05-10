@@ -7,6 +7,7 @@ import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 
 const url = "http://localhost:8080/ListAll";
+const urlSave = "http://localhost:8080/save";
 
 class App extends Component {
 
@@ -17,11 +18,15 @@ state = {
     plate: '',
     brand: '',
     model: '',
+    driver: {
     id: '',
-    name: ''
+    name: '',
+    }
   }
 }
-
+modalInsert=()=>{
+  this.setState({modalInsert: !this.state.modalInsert});
+}
 getPetition=()=>{
   axios.get(url).then(response=>{
     this.setState({data: response.data});
@@ -29,13 +34,10 @@ getPetition=()=>{
   })
 }
 postPetition=async()=>{
-  await axios.post(url,this.state.form).then(response=>{
+  await axios.post(urlSave,this.state.form).then(response=>{
     this.modalInsert();
     this.getPetition();
   }).catch(error=>{console.log(error.message)})
-}
-modalInsert=()=>{
-  this.setState({modalInsert: !this.state.modalInsert});
 }
 handleChange=async e=>{
   e.persist();
@@ -45,6 +47,16 @@ handleChange=async e=>{
       [e.target.name]: e.target.value
     }
   });
+  console.log(this.state.form);
+}
+handleChangeDriver=async e=>{
+  e.persist();
+    this.state.form.driver.name = e.target.value
+  console.log(this.state.form);
+}
+handleChangeDriverId=async e=>{
+  e.persist();
+    this.state.form.driver.id = e.target.value
   console.log(this.state.form);
 }
 
@@ -104,10 +116,10 @@ this.getPetition();
               <input className = "form-group" type = "text" name = "model" id = "model" onChange={this.handleChange} value={form.model} />
               <br />
               <label htmlFor="id">ID Conductor</label>
-              <input className = "form-group" type = "text" name = "id" id = "id" onChange={this.handleChange} value={form.id} />
+              <input className = "form-group" type = "text" name = "driver.id" id = "driver.id" onChange={this.handleChangeDriverId} />
               <br />
               <label htmlFor="name">Nombre Conductor</label>
-              <input className = "form-group" type = "text" name = "name" id = "name" onChange={this.handleChange} value={form.name} />
+              <input className = "form-group" type = "text" name = "driver.name" id = "driver.name" onChange={this.handleChangeDriver} />
               <br />
             </div>
           </ModalBody>
