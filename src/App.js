@@ -4,8 +4,12 @@ import axios from 'axios';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { Modal, ModalBody, ModalFooter, ModalHeader, Table, Input, Label} from 'reactstrap';
+import { Modal, ModalBody, ModalFooter, ModalHeader, Table, Input, Label, Button} from 'reactstrap';
 import Displacement from './components/Displacement';
+import "firebase/auth";
+import firebase from "firebase/app";
+import "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 
 const url = "http://localhost:8080/ListAll";
@@ -13,8 +17,42 @@ const urlSave = "http://localhost:8080/save";
 const urlUpdate = "http://localhost:8080/update/";
 const urlDelete = "http://localhost:8080/delete/";
 
+firebase.initializeApp({
+  apiKey: "AIzaSyAWpI2oR_h5wrFfcouNfyfe5wUCxkUw19k",
+  authDomain: "escenario4-2784f.firebaseapp.com",
+  projectId: "escenario4-2784f",
+  storageBucket: "escenario4-2784f.appspot.com",
+  messagingSenderId: "891310541700",
+  appId: "1:891310541700:web:23f0099fa7a73471ca2bd1"
+});
+
+const auth = firebase.auth();
+
+function SignIn() {
+  const signInWithGoogle = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  };
+
+  return <Button onClick={signInWithGoogle}>Sign in with google</Button>;
+}
+
+function SignOut() {
+  return (
+    auth.currentUser && (
+      <Button
+        onClick={() => {
+          auth.signOut();
+        }}
+      >
+        Sign out
+      </Button>
+    )
+  );
+}
 
 class App extends Component {
+
 
   state = {
     data: [],
@@ -33,6 +71,7 @@ class App extends Component {
     },
   }
   
+
   modalInsert = () => {
     this.setState({ modalInsert: !this.state.modalInsert });
   }
@@ -103,6 +142,7 @@ class App extends Component {
   render() {
     const { form } = this.state;
     return (
+      <>{ 
       <div className="App">
         <br />
         <button className="btn btn-success" onClick={() => {
@@ -186,37 +226,14 @@ class App extends Component {
           </ModalFooter>
         </Modal>
         <Modal size="lg" isOpen={this.state.modelDisplacement}>
-          <ModalHeader closeButton><label>Desplazamientos de <b>{form && form.plate}</b></label></ModalHeader>
-          <ModalBody>
-            <Table>
-              <thead>
-                <tr>
-                  <th>Origen</th>
-                  <th>Destino</th>
-                  <th>Fecha Origen</th>
-                  <th>Fecha Destino</th>
-                </tr>
-              </thead> 
+          <ModalHeader closeButton>
+            <label>Desplazamientos de <b>{form && form.plate}</b></label>
+            <button className="btn btn-primary" style={{float: 'right'}} onClick={() => this.setState({ modelDisplacement: false })}>Cerrar</button>
+          </ModalHeader>
                 <Displacement plate = {form.plate} />
-            </Table>
-            <h7><b>Agregar Desplazamiento para este vehiculo</b></h7>
-            <div>
-            <Label>Origen</Label>
-            <Input></Input>
-            <label>Destino</label>
-            <Input></Input>
-            <label>Fecha Origen</label>
-            <Input type="date"></Input>
-            <label>Fecha Destino</label>
-            <Input type="date"></Input>
-            </div>
-          </ModalBody>
-          <ModalFooter>
-                <button className="btn btn-success">Aceptar</button>
-                <button className="btn btn-primary" onClick={() => this.setState({ modelDisplacement: false })}>Cerrar</button>
-          </ModalFooter>
         </Modal>
       </div>
+      }</>
     );
   }
 }

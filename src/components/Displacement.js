@@ -1,6 +1,7 @@
 
 import { Component} from 'react';
 import axios from 'axios';
+import { Modal, ModalBody, ModalFooter, ModalHeader, Table, Input, Label} from 'reactstrap';
 
 const urlListDisplacement = "http://localhost:8080/ListDisplacementCar/";
 const urlSaveDisplacement = "http://localhost:8080/saveDisplacement";
@@ -16,6 +17,16 @@ class Displacement extends Component{
       dateOrigin: '',
       dateDestiny: '',
     }
+  }
+  handleChange = async e => {
+    e.persist();
+    await this.setState({
+      form: {
+        ...this.state.form,
+        [e.target.name]: e.target.value
+      }
+    });
+    console.log(this.state.form);
   }
   selectDisplacement = (displacement) => {
     this.setState({
@@ -45,6 +56,17 @@ class Displacement extends Component{
   }
   render() {
       return(
+          <>
+        <ModalBody>
+        <Table>
+          <thead>
+            <tr>
+              <th>Origen</th>
+              <th>Destino</th>
+              <th>Fecha Origen</th>
+              <th>Fecha Destino</th>
+            </tr>
+          </thead> 
         <tbody>
             {console.log("propos",this.props.plate)}
     {this.state.data.map(displacement => {
@@ -59,6 +81,23 @@ class Displacement extends Component{
       }
       )}
         </tbody>
+        </Table>
+            <h7><b>Agregar Desplazamiento para este vehiculo</b></h7>
+            <div>
+            <Label>Origen</Label>
+            <Input name="origin" id="origin" onChange={this.handleChange} ></Input>
+            <label>Destino</label>
+            <Input name="destiny" id="destiny" onChange={this.handleChange}></Input>
+            <label>Fecha Origen</label>
+            <Input type="date" name="dateOrigin" id="dateOrigin" onChange={this.handleChange} ></Input>
+            <label>Fecha Destino</label>
+            <Input type="date" name="dateDestiny" id="dateDestiny" onChange={this.handleChange}></Input>
+            </div>
+          </ModalBody>
+            <ModalFooter>
+                <button className="btn btn-success" onClick={() => this.postPetitionDisplacement()} >Aceptar</button>
+            </ModalFooter>
+        </>
       );
   }
 
